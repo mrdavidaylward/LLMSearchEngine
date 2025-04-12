@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>AI Search Engine</title>
   <style>
+    /* CSS Variables for Theming */
     :root {
       --bg: #ffffff; --surface: #f9fafb;
       --text-primary: #1f2937; --text-secondary: #4b5563;
@@ -19,6 +20,8 @@
       --border: #374151; --shadow: rgba(0,0,0,0.5);
       --danger: #f87171;
     }
+
+    /* Basic Reset and Global Styles */
     *,*::before,*::after { box-sizing: border-box; }
     html {
       background: var(--bg);
@@ -32,7 +35,11 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      background-color: var(--bg); /* Ensure body background matches theme */
+      color: var(--text-primary); /* Ensure body text matches theme */
     }
+
+    /* Header Styles */
     header {
       display: flex;
       align-items: center;
@@ -44,10 +51,36 @@
       top: 0;
       z-index: 100;
     }
+    .header-left { /* Container for logo and stats */
+        display: flex;
+        align-items: center;
+        gap: 1rem; /* Space between logo and stats */
+        flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    }
     .logo {
       font-size: 1.5rem;
       font-weight: 600;
       color: var(--primary);
+    }
+    /* Generation Stats Styles (Time & Tokens) */
+    .generation-time, .token-count {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        white-space: nowrap; /* Prevent wrapping */
+        opacity: 0; /* Hidden by default */
+        transition: opacity 0.5s ease-in-out; /* Smooth transition for final display */
+    }
+    .generation-time {
+        min-width: 110px;
+        text-align: right;
+    }
+    .token-count {
+        min-width: 150px; /* Adjust as needed */
+        text-align: left; /* Align left relative to time */
+        margin-left: 0.5rem; /* Space between time and tokens */
+    }
+    .generation-time.visible, .token-count.visible {
+        opacity: 1; /* Make visible */
     }
     .burger-menu {
       font-size: 1.5rem;
@@ -56,8 +89,10 @@
       color: var(--text-secondary);
       cursor: pointer;
     }
+
+    /* Search Form Styles */
     .search-container {
-      flex: 0 0 auto;
+      flex: 0 0 auto; /* Prevent shrinking/growing */
       display: flex;
       justify-content: center;
       padding: 2rem 1rem;
@@ -69,18 +104,18 @@
       max-width: 700px;
     }
     .search-box {
-      flex: 1;
+      flex: 1; /* Take available space */
       padding: 0.75rem 1rem;
       font-size: 1rem;
       border: 1px solid var(--border);
-      border-radius: 0.5rem 0 0 0.5rem;
+      border-radius: 0.5rem 0 0 0.5rem; /* Rounded left corners */
       background: var(--surface);
       color: var(--text-primary);
       outline: none;
     }
     .search-box:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(99,102,241,0.3);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.3); /* Focus ring */
     }
     .search-button {
       padding: 0.75rem 1.5rem;
@@ -88,18 +123,21 @@
       border: none;
       background: var(--primary);
       color: #fff;
-      border-radius: 0 0.5rem 0.5rem 0;
+      border-radius: 0 0.5rem 0.5rem 0; /* Rounded right corners */
       cursor: pointer;
       transition: background 0.2s;
     }
     .search-button:hover { background: var(--primary-hover); }
+
+    /* Results Area Styles */
     .result-container {
-      flex: 1 1 auto;
+      flex: 1 1 auto; /* Allow growing/shrinking, take remaining space */
       padding: 2rem;
       max-width: 1000px;
-      margin: 0 auto;
+      margin: 0 auto; /* Center the container */
       width: 100%;
     }
+    /* Basic styling for generated content - LLM should provide its own styles */
     .result-container h1,
     .result-container h2,
     .result-container h3 {
@@ -118,45 +156,88 @@
       text-decoration: none;
     }
     .result-container a:hover { text-decoration: underline; }
+    /* Ensure generated content respects theme */
+    .result-container > * {
+       color: var(--text-primary);
+    }
+    .result-container table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border);
+    }
+    .result-container th, .result-container td {
+        border: 1px solid var(--border);
+        padding: 0.5rem;
+        text-align: left;
+    }
+    .result-container th {
+        background-color: var(--surface);
+    }
+    .result-container pre {
+        background-color: var(--surface);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+    }
+    .result-container code {
+       font-family: monospace;
+    }
+
+    /* Loading Spinner Styles */
     .loading {
       position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.3);
-      display: flex;
+      inset: 0; /* Cover entire viewport */
+      background: rgba(0,0,0,0.4); /* Adjusted overlay for better text contrast */
+      display: flex; /* Use flexbox for centering */
+      flex-direction: column; /* Stack spinner and text vertically */
       align-items: center;
       justify-content: center;
-      z-index: 200;
+      gap: 15px; /* Space between spinner and text */
+      z-index: 200; /* High z-index to be on top */
     }
     .loading-spinner {
-      border: 8px solid var(--surface);
-      border-top: 8px solid var(--primary);
+      /* Removed position: relative */
+      border: 8px solid var(--surface); /* Light part of the circle */
+      border-top: 8px solid var(--primary); /* Colored part for spinning effect */
       border-radius: 50%;
-      width: 60px;
+      width: 60px; /* Slightly smaller spinner */
       height: 60px;
-      animation: spin 1s linear infinite;
+      animation: spin 1s linear infinite; /* Spin animation */
+      /* Text is no longer inside */
+    }
+    /* Removed .spinner-text-wrapper */
+    #spinner-timer { /* Style for timer text (now sibling of spinner) */
+        font-size: 1rem; /* Slightly larger text */
+        color: var(--surface); /* Light color for contrast on dark overlay */
+        font-weight: 500;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* Optional shadow */
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Settings Panel Styles */
     .overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.4);
-      display: none;
-      z-index: 150;
+      background: rgba(0,0,0,0.4); /* Dark overlay when panel is open */
+      display: none; /* Hidden by default */
+      z-index: 150; /* Below panel, above content */
     }
     .settings-panel {
       position: fixed;
       top: 0;
-      right: -320px;
+      right: -320px; /* Start off-screen */
       width: 300px;
       height: 100%;
       background: var(--surface);
-      box-shadow: -2px 0 8px var(--shadow);
+      box-shadow: -2px 0 8px var(--shadow); /* Shadow on the left */
       padding: 1.5rem;
-      transition: right 0.3s ease;
-      z-index: 160;
-      overflow-y: auto;
+      transition: right 0.3s ease; /* Smooth slide animation */
+      z-index: 160; /* Above overlay */
+      overflow-y: auto; /* Allow scrolling if content overflows */
     }
-    .settings-panel.open { right: 0; }
+    .settings-panel.open { right: 0; } /* Slide in when open class is added */
     .settings-panel h2 {
       margin-top: 0;
       margin-bottom: 1rem;
@@ -168,32 +249,49 @@
       font-size: 1rem;
       color: var(--text-primary);
     }
+
+    /* Form Elements within Settings Panel */
     .form-group {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: space-between; /* Space out label and control */
       margin-bottom: 1rem;
     }
     .form-group label {
       font-weight: 500;
       color: var(--text-secondary);
+      white-space: nowrap; /* Prevent label wrapping */
+      margin-right: 0.5rem;
     }
     .form-group input[type="text"],
     .form-group select {
-      flex: 1;
+      flex: 1; /* Allow input/select to take remaining space */
       margin-left: 0.5rem;
       padding: 0.5rem;
       border: 1px solid var(--border);
       border-radius: 0.375rem;
       background: var(--bg);
       color: var(--text-primary);
+      min-width: 0; /* Prevent overflow on flex items */
     }
     .form-group input[type="checkbox"],
     .form-group input[type="radio"] {
       transform: scale(1.2);
-      accent-color: var(--primary);
+      accent-color: var(--primary); /* Color the checkbox/radio */
       margin-left: 0.5rem;
     }
+    /* Specific style for model radio buttons to align text */
+    #models-list .form-group label {
+      display: flex;
+      align-items: center;
+      width: 100%; /* Make label take full width */
+    }
+     #models-list .form-group input[type="radio"] {
+      margin-right: 0.5rem; /* Space between radio and text */
+      margin-left: 0; /* Reset margin */
+    }
+
+    /* Settings Panel Buttons */
     .save-button {
       width: 100%;
       padding: 0.75rem;
@@ -205,16 +303,18 @@
       font-size: 1rem;
     }
     .save-button:hover { background: var(--primary-hover); }
+
+    /* Connection Status Indicator */
     .status-indicator {
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: var(--border);
+      background: var(--border); /* Default grey */
       display: inline-block;
       margin-right: 0.5rem;
     }
-    .status-indicator.connected { background: var(--primary); }
-    .status-indicator.disconnected { background: var(--danger); }
+    .status-indicator.connected { background: var(--primary); } /* Blue when connected */
+    .status-indicator.disconnected { background: var(--danger); } /* Red when disconnected */
     .status-text {
       font-size: 0.875rem;
       color: var(--text-secondary);
@@ -228,6 +328,8 @@
       font-size: 1rem;
       padding: 0.25rem;
     }
+
+    /* Thinking Content Popup */
     .think-star {
       position: fixed;
       bottom: 1.5rem;
@@ -238,9 +340,9 @@
       color: var(--primary);
     }
     .think-popup {
-      display: none;
-      position: absolute;
-      bottom: 2.75rem;
+      display: none; /* Hidden by default */
+      position: absolute; /* Position relative to the star */
+      bottom: 2.75rem; /* Position above the star */
       right: 0;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -250,37 +352,85 @@
       font-size: 0.875rem;
       line-height: 1.4;
       color: var(--text-secondary);
+      border-radius: 0.5rem;
+      white-space: pre-wrap; /* Preserve whitespace from Go template */
     }
-    .think-star:hover .think-popup { display: block; }
+    .think-star:hover .think-popup { display: block; } /* Show on hover */
+
+    /* Breakout Button Styles */
+    .breakout-container {
+      text-align: right;
+      margin: 1rem 2rem; /* Position below results, aligned right */
+    }
+    .breakout-container button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .breakout-container button:hover {
+      background: var(--primary-hover);
+    }
+
+    /* Debug Info (Hidden by default) */
+    .debug-info {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      margin: 1rem 2rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      white-space: pre-wrap; /* Preserve formatting */
+      max-height: 200px;
+      overflow-y: auto;
+      border-radius: 0.5rem;
+    }
   </style>
 </head>
-<body>
-  <header>
-    <div class="logo">AI Search</div>
-    <button class="burger-menu" onclick="toggleSettings()">☰</button>
+<body data-theme="{{ .Theme }}"> <header>
+    <div class="header-left"> <div class="logo">AI Search</div>
+        <span id="generation-time" class="generation-time"></span> <span id="token-count" class="token-count"></span> </div>
+    <button class="burger-menu" onclick="toggleSettings()" aria-label="Toggle Settings">☰</button>
   </header>
+
   <div class="search-container">
     <form action="/search" method="get" onsubmit="return showLoading()">
       <input type="hidden" id="hidden-ollama-url" name="ollama_url" value="{{ .OllamaURL }}">
       <input type="hidden" id="hidden-model" name="model" value="{{ .CurrentModel }}">
       <input type="hidden" id="hidden-thinking-model" name="thinking_model" value="{{ if .ThinkingFlag }}true{{ else }}false{{ end }}">
+      <input type="hidden" id="hidden-svg" name="svg" value="{{ if .SvgFlag }}true{{ else }}false{{ end }}">
       <input type="hidden" id="hidden-theme" name="theme" value="{{ .Theme }}">
-      <input type="text" name="q" class="search-box" placeholder="Ask me anything…" value="{{ .Query }}">
+
+      <input type="text" name="q" class="search-box" placeholder="Ask me anything…" value="{{ .Query }}" required>
       <button type="submit" class="search-button">Search</button>
     </form>
   </div>
+
   {{ if .IsSearch }}
   <main class="result-container" id="result-container">
     {{ .Content }}
   </main>
-  <pre class="debug-info" style="display:none">{{ .Debug }}</pre>
-  {{ end }}
-  <div id="loading" class="loading" style="display:none">
-    <div class="loading-spinner"></div>
+
+  <div class="breakout-container">
+    <button id="breakout-button" onclick="breakout()" title="Open generated content in a new tab">Breakout to New Page</button>
   </div>
+
+  <pre class="debug-info" style="display:none;">{{ .Debug }}</pre>
+  {{ end }} <div id="loading" class="loading" style="display:none">
+      <div class="loading-spinner"></div>
+      <span id="spinner-timer"></span>
+  </div>
+
+
   <div id="overlay" class="overlay" onclick="closeSettings()"></div>
+
   <aside id="settings-panel" class="settings-panel">
     <h2>Settings</h2>
+
     <div class="settings-section">
       <h3>Appearance</h3>
       <div class="form-group">
@@ -288,6 +438,7 @@
         <input type="checkbox" id="theme-toggle">
       </div>
     </div>
+
     <div class="settings-section">
       <h3>Ollama Connection</h3>
       <div class="form-group">
@@ -297,9 +448,10 @@
       <div class="form-group">
         <span id="connection-status" class="status-indicator"></span>
         <span id="status-text" class="status-text">Unknown</span>
-        <button type="button" class="refresh-button" onclick="checkConnection()">↻</button>
+        <button type="button" class="refresh-button" onclick="checkConnection()" title="Check connection status">↻</button>
       </div>
     </div>
+
     <div class="settings-section">
       <h3>Model Selection</h3>
       <div id="models-list">
@@ -313,116 +465,545 @@
         {{ end }}
       </div>
     </div>
+
     <div class="settings-section">
       <h3>Model Options</h3>
       <div class="form-group">
-        <label for="thinking-toggle">Thinking model</label>
+        <label for="thinking-toggle">Extract &lt;think&gt;</label>
         <input type="checkbox" id="thinking-toggle" {{ if .ThinkingFlag }}checked{{ end }}>
       </div>
+      <div class="form-group">
+        <label for="svg-toggle">Generate SVG Images</label>
+        <input type="checkbox" id="svg-toggle" {{ if .SvgFlag }}checked{{ end }}>
+      </div>
     </div>
-    <button class="save-button" onclick="saveSettings()">Save</button>
+
+    <button class="save-button" onclick="saveSettings()">Save & Close</button>
   </aside>
+
   {{ if .ThinkContent }}
-  <div class="think-star">★
+  <div class="think-star" title="Show thinking process">★
     <div class="think-popup">{{ .ThinkContent }}</div>
   </div>
   {{ end }}
+
   <script>
+    // --- EMBEDDED GO TEMPLATE VARIABLES ---
+    // Use direct assignment; Go template ensures values exist (even if 0 or -1)
+    const responseTokens = {{ .ResponseTokens }};
+    const promptTokens = {{ .PromptTokens }};
+    // --- END OF EMBEDDED VARIABLES ---
+
+
+    // Global variable to hold the interval ID for the loading timer
+    let loadingTimerInterval = null;
+    let loadingStartTime = 0;
+
+    /**
+     * Applies the selected theme (light/dark) to the document.
+     * @param {string} theme - The theme name ('light' or 'dark').
+     */
     function applyTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
-      document.getElementById('theme-toggle').checked = (theme === 'dark');
+      document.body.setAttribute('data-theme', theme); // Also apply to body
+      try {
+        document.getElementById('theme-toggle').checked = (theme === 'dark');
+        // Update hidden theme input for form submission
+        const hiddenThemeInput = document.getElementById('hidden-theme');
+        if (hiddenThemeInput) {
+            hiddenThemeInput.value = theme;
+        }
+      } catch (e) {
+        console.error("Error applying theme:", e);
+      }
     }
-    document.addEventListener('DOMContentLoaded', () => {
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      applyTheme(savedTheme);
-      document.getElementById('theme-toggle').addEventListener('change', e => {
-        const t = e.target.checked ? 'dark' : 'light';
-        localStorage.setItem('theme', t);
-        applyTheme(t);
-        document.getElementById('hidden-theme').value = t;
-      });
-      const url = localStorage.getItem('ollamaUrl') || '{{ .OllamaURL }}';
-      const model = localStorage.getItem('selectedModel') || '{{ .CurrentModel }}';
-      const thinking = localStorage.getItem('thinkingModel') === 'true';
-      document.getElementById('ollama-url').value = url;
-      document.getElementById('hidden-ollama-url').value = url;
-      document.getElementById('hidden-model').value = model;
-      document.getElementById('thinking-toggle').checked = thinking;
-      document.getElementById('hidden-thinking-model').value = thinking;
-      document.getElementById('hidden-theme').value = savedTheme;
-      document.querySelectorAll('input[name="model-radio"]').forEach(r => {
-        r.addEventListener('change', () => {
-          document.querySelectorAll('input[name="model-radio"]').forEach(x => x.checked = false);
-          r.checked = true;
-        });
-      });
-      checkConnection();
-    });
+
+    /**
+     * Starts a timer that updates the header and spinner every 100ms.
+     */
+    function startLoadingTimer() {
+        // Clear any existing interval
+        if (loadingTimerInterval) {
+            clearInterval(loadingTimerInterval);
+        }
+
+        loadingStartTime = Date.now(); // Record the start time for this timer
+        const headerTimeElement = document.getElementById('generation-time');
+        const spinnerTimeElement = document.getElementById('spinner-timer');
+
+        // Clear previous stats
+        const tokenElement = document.getElementById('token-count');
+        if (headerTimeElement) headerTimeElement.classList.remove('visible');
+        if (tokenElement) tokenElement.classList.remove('visible');
+
+
+        if (headerTimeElement) {
+            headerTimeElement.textContent = '0.00s'; // Initial display with 2 decimals
+            headerTimeElement.classList.add('visible'); // Make visible immediately
+        }
+        if (spinnerTimeElement) {
+            spinnerTimeElement.textContent = '0.00s'; // Initial display with 2 decimals
+        }
+
+        // Start the interval timer
+        loadingTimerInterval = setInterval(() => {
+            const elapsed = (Date.now() - loadingStartTime) / 1000;
+            const display = elapsed.toFixed(2) + 's'; // Display 2 decimal places
+            if (headerTimeElement) {
+                // Only display the time during loading, not "Generated in..."
+                headerTimeElement.textContent = display;
+            }
+            if (spinnerTimeElement) {
+                spinnerTimeElement.textContent = display;
+            }
+        }, 100); // Update every 100ms for more accuracy
+    }
+
+    /**
+     * Stops the live loading timer.
+     */
+    function stopLoadingTimer() {
+        if (loadingTimerInterval) {
+            clearInterval(loadingTimerInterval);
+            loadingTimerInterval = null;
+        }
+        // Optionally clear the spinner timer text when stopped
+        const spinnerTimeElement = document.getElementById('spinner-timer');
+        if (spinnerTimeElement) {
+            spinnerTimeElement.textContent = '';
+        }
+    }
+
+
+    /**
+     * Shows the loading spinner overlay.
+     * Clears previous results if any.
+     * Records the *accurate* search start time in localStorage.
+     * Starts the *visual* live loading timer.
+     * @returns {boolean} Always returns true to allow form submission.
+     */
     function showLoading() {
-      document.getElementById('loading').style.display = 'flex';
-      document.getElementById('result-container').innerHTML = '';
-      return true;
+      try {
+        // Record accurate start time for final calculation
+        localStorage.setItem('searchStartTime', Date.now());
+
+        // Show spinner and clear results
+        document.getElementById('loading').style.display = 'flex';
+        const resultContainer = document.getElementById('result-container');
+        if (resultContainer) {
+          resultContainer.innerHTML = ''; // Clear previous results
+        }
+
+        // Start the visual live timer
+        startLoadingTimer();
+
+      } catch (e) {
+        console.error("Error showing loading indicator:", e);
+        localStorage.removeItem('searchStartTime'); // Clear accurate start time if error occurs
+        stopLoadingTimer(); // Stop visual timer if error occurs
+      }
+      return true; // Allow form submission to proceed
     }
+
+    /**
+     * Toggles the visibility of the settings panel and overlay.
+     */
     function toggleSettings() {
-      document.getElementById('settings-panel').classList.toggle('open');
-      document.getElementById('overlay').style.display =
-        document.getElementById('overlay').style.display === 'block' ? 'none' : 'block';
+      try {
+        document.getElementById('settings-panel').classList.toggle('open');
+        const overlay = document.getElementById('overlay');
+        overlay.style.display = (overlay.style.display === 'block' ? 'none' : 'block');
+      } catch (e) {
+        console.error("Error toggling settings panel:", e);
+      }
     }
+
+    /**
+     * Closes the settings panel and hides the overlay.
+     */
     function closeSettings() {
-      document.getElementById('settings-panel').classList.remove('open');
-      document.getElementById('overlay').style.display = 'none';
+      try {
+        document.getElementById('settings-panel').classList.remove('open');
+        document.getElementById('overlay').style.display = 'none';
+      } catch (e) {
+        console.error("Error closing settings panel:", e);
+      }
     }
+
+    /**
+     * Saves current settings from the panel to localStorage and updates hidden form fields.
+     */
     function saveSettings() {
-      const url = document.getElementById('ollama-url').value;
-      const model = document.querySelector('input[name="model-radio"]:checked').value;
-      const thinking = document.getElementById('thinking-toggle').checked;
-      const theme = document.getElementById('theme-toggle').checked ? 'dark' : 'light';
-      localStorage.setItem('ollamaUrl', url);
-      localStorage.setItem('selectedModel', model);
-      localStorage.setItem('thinkingModel', thinking);
-      localStorage.setItem('theme', theme);
-      document.getElementById('hidden-ollama-url').value = url;
-      document.getElementById('hidden-model').value = model;
-      document.getElementById('hidden-thinking-model').value = thinking;
-      document.getElementById('hidden-theme').value = theme;
-      checkConnection();
-      closeSettings();
+      try {
+        const url = document.getElementById('ollama-url').value;
+        const selectedModelRadio = document.querySelector('input[name="model-radio"]:checked');
+        // Use default model from Go template if none is selected (shouldn't happen with dynamic list)
+        const model = selectedModelRadio ? selectedModelRadio.value : '{{ .CurrentModel }}';
+        const thinking = document.getElementById('thinking-toggle').checked;
+        const svg = document.getElementById('svg-toggle').checked;
+        const theme = document.getElementById('theme-toggle').checked ? 'dark' : 'light';
+
+        // Save to localStorage
+        localStorage.setItem('ollamaUrl', url);
+        localStorage.setItem('selectedModel', model);
+        localStorage.setItem('thinkingModel', String(thinking)); // Store as string 'true'/'false'
+        localStorage.setItem('svgModel', String(svg));       // Store as string 'true'/'false'
+        localStorage.setItem('theme', theme);
+
+        // Update hidden fields for next form submission
+        document.getElementById('hidden-ollama-url').value = url;
+        document.getElementById('hidden-model').value = model;
+        document.getElementById('hidden-thinking-model').value = thinking;
+        document.getElementById('hidden-svg').value = svg;
+        document.getElementById('hidden-theme').value = theme;
+
+        applyTheme(theme); // Apply theme immediately
+        checkConnection(); // Re-check connection with potentially new URL
+        closeSettings();   // Close the panel
+      } catch (e) {
+        console.error("Error saving settings:", e);
+        alert("Error saving settings. Check console for details.");
+      }
     }
+
+    /**
+     * Checks the connection to the Ollama API endpoint.
+     * Updates the status indicator and text.
+     * Fetches and populates the model list on success.
+     */
     function checkConnection() {
-      const url = document.getElementById('ollama-url').value;
+      const urlInput = document.getElementById('ollama-url');
+      if (!urlInput) return; // Exit if element not found
+
+      const url = urlInput.value || '{{ .OllamaURL }}'; // Use input value or default
       const statusIndicator = document.getElementById('connection-status');
       const statusText = document.getElementById('status-text');
-      statusIndicator.className = 'status-indicator';
+
+      if (!statusIndicator || !statusText) return; // Exit if elements not found
+
+      statusIndicator.className = 'status-indicator'; // Reset class
       statusText.textContent = 'Checking...';
-      fetch(url + '/api/tags')
+
+      fetch(url + '/api/tags') // Endpoint to list models, good for checking connectivity
         .then(res => {
-          if (!res.ok) throw new Error('fail');
+          if (!res.ok) {
+            // Throw an error with status text for better debugging
+            throw new Error(`Failed to connect: ${res.status} ${res.statusText}`);
+          }
           statusIndicator.classList.add('connected');
           statusText.textContent = 'Connected';
-          return res.json();
+          return res.json(); // Parse JSON response
         })
-        .then(data => { if (data.models) populateModels(data.models); })
-        .catch(() => {
+        .then(data => {
+          // Check if the response has the expected 'models' array
+          if (data && Array.isArray(data.models)) {
+            populateModels(data.models); // Populate model list if successful
+          } else {
+            console.warn("Received unexpected data format from /api/tags:", data);
+            statusText.textContent = 'Connected (unexpected response)';
+          }
+        })
+        .catch((err) => {
+          console.error("Connection check failed:", err);
           statusIndicator.classList.add('disconnected');
           statusText.textContent = 'Disconnected';
+           // Clear model list on failure? Optional.
+           // document.getElementById('models-list').innerHTML = '<p style="color: var(--danger);">Failed to load models.</p>';
         });
     }
+
+    /**
+     * Populates the model selection radio buttons in the settings panel.
+     * @param {Array<Object>} models - Array of model objects from Ollama API (e.g., {name: 'llama3', ...}).
+     */
     function populateModels(models) {
       const container = document.getElementById('models-list');
-      container.innerHTML = '';
-      const current = localStorage.getItem('selectedModel') || '{{ .CurrentModel }}';
+      if (!container) return; // Exit if container not found
+
+      container.innerHTML = ''; // Clear existing list
+      // Get the currently selected model (from localStorage or Go template default)
+      const currentModel = localStorage.getItem('selectedModel') || '{{ .CurrentModel }}';
+
+      if (models.length === 0) {
+          container.innerHTML = '<p>No models found at this URL.</p>';
+          return;
+      }
+
       models.forEach(m => {
+        if (!m || !m.name) return; // Skip invalid model entries
+
         const div = document.createElement('div');
         div.className = 'form-group';
+        const inputId = `model-radio-${m.name.replace(/[^a-zA-Z0-9]/g, '-')}`; // Create unique ID
         div.innerHTML = `
-          <label>
-            <input type="radio" name="model-radio" value="${m.name}"
-              ${m.name === current ? 'checked' : ''}>
-            ${m.name}
-          </label>`;
+          <label for="${inputId}">
+            <input type="radio" name="model-radio" id="${inputId}" value="${m.name}"
+              ${m.name === currentModel ? 'checked' : ''}>
+            ${m.name} </label>`;
         container.appendChild(div);
       });
+
+       // Add event listeners to newly created radio buttons
+       document.querySelectorAll('input[name="model-radio"]').forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                // Update the hidden model input field immediately when a radio button is selected
+                const hiddenModelInput = document.getElementById('hidden-model');
+                if (hiddenModelInput) {
+                    hiddenModelInput.value = event.target.value;
+                }
+                // Optionally save to localStorage immediately on change, or wait for Save button
+                // localStorage.setItem('selectedModel', event.target.value);
+            });
+        });
     }
+
+    /**
+     * Opens the generated HTML content in a new browser tab/window, including styles.
+     */
+    function breakout() {
+        try {
+            const resultContainer = document.getElementById('result-container');
+            if (!resultContainer) {
+                alert("Result container not found.");
+                return;
+            }
+            const content = resultContainer.innerHTML;
+            if (!content || !content.trim()) {
+                alert("No generated content to breakout.");
+                return;
+            }
+
+            // Get styles from the main page
+            let pageStyles = '';
+            try {
+                // Attempt to get the content of the main <style> tag
+                const styleElement = document.querySelector('head > style');
+                if (styleElement) {
+                    pageStyles = styleElement.textContent;
+                } else {
+                    console.warn("Could not find main style tag to copy for breakout page.");
+                }
+            } catch (e) {
+                 console.error("Error getting styles for breakout page:", e);
+            }
+
+            const newWindow = window.open("", "_blank");
+            if (!newWindow) {
+                alert("Could not open new window. Please check your browser's popup blocker settings.");
+                return;
+            }
+            newWindow.document.open();
+
+            // Get current theme
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+
+            // Write the full HTML structure including copied styles
+            newWindow.document.write(`<!DOCTYPE html>
+<html lang="en" data-theme="${currentTheme}">
+<head>
+  <meta charset='UTF-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generated Page</title>
+  <style>
+    /* Copied styles from main page */
+    ${pageStyles}
+
+    /* Additional minimal styles for body if needed */
+    body { margin: 2rem; }
+    /* Ensure result container exists for potential nested styles */
+    .result-container { padding: 0; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="result-container">
+    ${content}
+  </div>
+</body>
+</html>`);
+            newWindow.document.close();
+        } catch (e) {
+            console.error("Error during breakout:", e);
+            alert("An error occurred while trying to open the content in a new window.");
+        }
+    }
+
+    /**
+     * Stops the live loading timer.
+     * Calculates and displays the *final, accurate* generation time and token counts
+     * if the data is available.
+     */
+    function displayGenerationStats() {
+        // Stop the live visual timer first
+        stopLoadingTimer();
+
+        const timeElement = document.getElementById('generation-time');
+        const tokenElement = document.getElementById('token-count');
+
+        // Calculate and display the accurate time
+        const accurateStartTime = localStorage.getItem('searchStartTime');
+        if (accurateStartTime) {
+            localStorage.removeItem('searchStartTime'); // Remove item after reading
+            const endTime = Date.now();
+            const duration = (endTime - parseInt(accurateStartTime)) / 1000; // Duration in seconds
+            const displayTime = duration.toFixed(2); // Format to 2 decimal places
+
+            if (timeElement) {
+                // Update the header with the final accurate time
+                timeElement.textContent = `Generated in ${displayTime}s`;
+                timeElement.classList.add('visible');
+            }
+        } else {
+             // If there was no start time (e.g., initial page load), hide the timer element
+             if(timeElement) {
+                 timeElement.classList.remove('visible');
+                 timeElement.textContent = ''; // Clear any potential leftover text
+             }
+        }
+
+        // Display token counts if available (passed from Go template via JS variables)
+        if (tokenElement) {
+            let tokenText = '';
+            // Check if backend provided valid token counts (defaulted to -1 or 0 if not)
+            // Use >= 0 check as backend might return 0 if parsing failed but field exists
+            if (promptTokens >= 0) {
+                tokenText += `${promptTokens} prompt`;
+            }
+            if (responseTokens >= 0) {
+                tokenText += (tokenText ? ' / ' : '') + `${responseTokens} response`;
+            }
+
+            if (tokenText) {
+                tokenElement.textContent = `(${tokenText} tokens)`;
+                tokenElement.classList.add('visible');
+            } else {
+                // Hide if no token data was provided by backend
+                tokenElement.classList.remove('visible');
+                tokenElement.textContent = '';
+            }
+        }
+    }
+
+
+    // --- Initialization Code ---
+    document.addEventListener('DOMContentLoaded', () => {
+      // Load saved settings or use defaults from Go template
+      const savedTheme = localStorage.getItem('theme') || '{{ .Theme }}';
+      const savedUrl = localStorage.getItem('ollamaUrl') || '{{ .OllamaURL }}';
+      const savedModel = localStorage.getItem('selectedModel') || '{{ .CurrentModel }}';
+      // Read boolean flags from localStorage, converting string back to boolean
+      const savedThinking = localStorage.getItem('thinkingModel') === 'true';
+      const savedSvg = localStorage.getItem('svgModel') === 'true';
+
+      // Apply theme first
+      applyTheme(savedTheme);
+
+      // Populate settings panel fields
+      try {
+        document.getElementById('ollama-url').value = savedUrl;
+        document.getElementById('thinking-toggle').checked = savedThinking;
+        document.getElementById('svg-toggle').checked = savedSvg;
+         // Ensure the correct radio button for the model is checked after dynamic population
+         // This might need adjustment if populateModels runs after this block
+         const modelRadios = document.querySelectorAll(`input[name="model-radio"][value="${savedModel}"]`);
+         if (modelRadios.length > 0) {
+            modelRadios[0].checked = true;
+         }
+
+      } catch (e) {
+        console.error("Error applying initial settings:", e);
+      }
+
+      // Update hidden form fields with initial values (saved or default)
+      try {
+        document.getElementById('hidden-ollama-url').value = savedUrl;
+        document.getElementById('hidden-model').value = savedModel;
+        document.getElementById('hidden-thinking-model').value = String(savedThinking);
+        document.getElementById('hidden-svg').value = String(savedSvg);
+        document.getElementById('hidden-theme').value = savedTheme;
+      } catch (e) {
+        console.error("Error setting initial hidden fields:", e);
+      }
+
+
+      // Add listener for theme toggle change
+      try {
+        document.getElementById('theme-toggle').addEventListener('change', e => {
+            const newTheme = e.target.checked ? 'dark' : 'light';
+            applyTheme(newTheme); // Apply immediately
+            // No need to save here, saveSettings() handles it
+        });
+      } catch (e) {
+        console.error("Error adding theme toggle listener:", e);
+      }
+
+      // Initial connection check and model population
+      checkConnection();
+
+      // Display final generation stats (time and tokens) if applicable
+      // This also stops any live timer from the previous step.
+      displayGenerationStats(); // <-- Updated function name
+
+      // Add event listener for related topic links
+      const resultContainer = document.getElementById('result-container');
+      if(resultContainer) {
+        resultContainer.addEventListener('click', function(event) {
+          // Use event delegation to catch clicks on <a> tags within the container
+          var target = event.target.closest('a'); // Find the nearest ancestor anchor tag
+
+          if (target && target.getAttribute('href') === '#' && target.getAttribute('data-topic')) {
+            event.preventDefault(); // Prevent default anchor behavior (#)
+            var topic = target.getAttribute('data-topic');
+            try {
+                // Update the search box value
+                const searchBox = document.querySelector('.search-box');
+                if (searchBox) {
+                    searchBox.value = topic;
+                }
+                // Find the form and submit it
+                const searchForm = document.querySelector('.search-container form');
+                if (searchForm) {
+                    // Ensure hidden fields are up-to-date before submitting
+                    // Note: saveSettings() also closes the panel, which might not be desired here.
+                    // Manually update hidden fields instead if panel should stay open.
+                    const url = localStorage.getItem('ollamaUrl') || '{{ .OllamaURL }}';
+                    const model = localStorage.getItem('selectedModel') || '{{ .CurrentModel }}';
+                    const thinking = localStorage.getItem('thinkingModel') === 'true';
+                    const svg = localStorage.getItem('svgModel') === 'true';
+                    const theme = localStorage.getItem('theme') || '{{ .Theme }}';
+                    document.getElementById('hidden-ollama-url').value = url;
+                    document.getElementById('hidden-model').value = model;
+                    document.getElementById('hidden-thinking-model').value = String(thinking);
+                    document.getElementById('hidden-svg').value = String(svg);
+                    document.getElementById('hidden-theme').value = theme;
+
+                    searchForm.submit();
+                    // showLoading() will be called by the form's onsubmit handler
+                }
+            } catch (e) {
+                console.error("Error submitting related topic search:", e);
+            }
+          }
+        });
+      }
+
+      // Ensure loading timer is stopped if the user navigates back/forward
+      // causing DOMContentLoaded without a corresponding showLoading call.
+      window.addEventListener('pageshow', function(event) {
+          // If the page was loaded from cache, the spinner might not be visible,
+          // but the interval might still be running if not cleared properly.
+          // We rely on displayGenerationTime to clear it on normal loads.
+          // This is an extra safety measure.
+          if (event.persisted) {
+              stopLoadingTimer();
+              // Also hide spinner if it somehow got stuck visible
+              const loadingElement = document.getElementById('loading');
+              if (loadingElement) loadingElement.style.display = 'none';
+              // Re-evaluate final time display in case it was a bfcache load
+              displayGenerationStats(); // <-- Updated function name
+          }
+      });
+
+    });
   </script>
 </body>
 </html>
