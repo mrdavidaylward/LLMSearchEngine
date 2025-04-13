@@ -28,7 +28,7 @@ Bugs? has plenty!
 - **Single Binary Deployment:**  
   Uses Go’s `embed` package to include HTML templates within the binary, simplifying deployment.
 
-This was mainly created for me to benchmark LLM's allroute ability ie coding svg generation knowledge etc. but its also fun.
+This was mainly created for me to benchmark LLM's all out ability ie coding svg generation knowledge etc. but its also fun.
 
 Can ya tell an LLM Wrote this Readme? well I didnt want to...
 Its probably fine...
