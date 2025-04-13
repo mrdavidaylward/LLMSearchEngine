@@ -1,6 +1,9 @@
 # LLM Search Engine
 
 Imagine if you had no internet access but wanted to search the web... I mean yeah you could use an offline llm but that just doesnt feel as good as a website now does it? Fear no more the product no one was asking for is here! 
+
+This is a pseudo search engine that promps an LLM to answer your question/prompt by generating an entire offline website.
+
 The application supports dark mode, dynamic model selection, and a special "thinking mode" where additional reasoning is displayed in a dedicated popup.
 
 Bugs? has plenty!
